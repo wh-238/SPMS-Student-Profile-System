@@ -9,6 +9,283 @@ const openai = new OpenAI({
 const conversations = {};
 
 const normalizeMajor = (major) => String(major || '').trim();
+const SUPPORTED_PUBLIC_FIELDS = ['major', 'bio', 'phone', 'address', 'birthday', 'role', 'name'];
+
+const detectLanguage = (text) => (/[^\u0000-\u007f]/.test(String(text || '')) ? 'zh' : 'en');
+
+const getPublicMajorEntries = (users, currentUserId) => users
+  .filter(user => user.id !== currentUserId)
+  .map(user => ({
+    ...user,
+    major: normalizeMajor(user.major)
+  }))
+  .filter(user => user.major);
+
+const buildMajorCounts = (users, currentUserId) => getPublicMajorEntries(users, currentUserId)
+  .reduce((counts, user) => {
+    counts[user.major] = (counts[user.major] || 0) + 1;
+    return counts;
+  }, {});
+
+const sortMajorCounts = (majorCounts) => Object.entries(majorCounts)
+  .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]));
+
+const isMajorListQuestion = (message) => {
+  const text = String(message || '').toLowerCase();
+
+  return (
+    /what kind of majors|what majors|which majors|list.*majors|major.*in this system|majors.*in this system|majors do .*have|available majors/.test(text) ||
+    /有哪些.*专业|什么专业|哪些专业|列出.*专业|系统里.*专业|专业.*有哪些/.test(String(message || ''))
+  );
+};
+
+const isMajorRankingQuestion = (message) => {
+  const text = String(message || '').toLowerCase();
+
+  return (
+    /(major).*(most|highest|largest|top)|most students.*major|which major has the most|popular major|major distribution|count by major/.test(text) ||
+    /哪个专业.*最多|什么专业.*最多|专业分布|专业统计|按专业.*人数|最多.*专业/.test(String(message || ''))
+  );
+};
+
+const buildMajorSummaryReply = (message, users, currentUserId) => {
+  const language = detectLanguage(message);
+  const majorCounts = buildMajorCounts(users, currentUserId);
+  const sortedMajors = sortMajorCounts(majorCounts);
+
+  if (sortedMajors.length === 0) {
+    return language === 'zh'
+      ? '根据当前公开资料，暂时没有用户公开他们的专业信息，所以我还不能总结系统里有哪些专业。'
+      : 'Based on the current public profiles, no users have made their major public yet, so I cannot summarize the majors in the system.';
+  }
+
+  const formattedMajors = sortedMajors
+    .map(([major, count]) => language === 'zh' ? `${major}（${count}人）` : `${major} (${count})`)
+    .join(language === 'zh' ? '、' : ', ');
+
+  if (isMajorRankingQuestion(message)) {
+    const highestCount = sortedMajors[0][1];
+    const topMajors = sortedMajors
+      .filter(([, count]) => count === highestCount)
+      .map(([major]) => major);
+
+    if (language === 'zh') {
+      return topMajors.length === 1
+        ? `根据当前公开资料，人数最多的专业是 ${topMajors[0]}，共有 ${highestCount} 人公开了这个专业。当前可见的专业分布为：${formattedMajors}。`
+        : `根据当前公开资料，目前人数最多的专业并列为 ${topMajors.join('、')}，各有 ${highestCount} 人公开。当前可见的专业分布为：${formattedMajors}。`;
+    }
+
+    return topMajors.length === 1
+      ? `Based on the current public profiles, the major with the most students is ${topMajors[0]}, with ${highestCount} public profile${highestCount === 1 ? '' : 's'}. The visible major distribution is: ${formattedMajors}.`
+      : `Based on the current public profiles, the top majors are tied between ${topMajors.join(', ')}, with ${highestCount} public profiles each. The visible major distribution is: ${formattedMajors}.`;
+  }
+
+  return language === 'zh'
+    ? `根据当前公开资料，系统里目前可见的专业有：${formattedMajors}。`
+    : `Based on the current public profiles, the visible majors in the system are: ${formattedMajors}.`;
+};
+
+const normalizeFieldValue = (value) => {
+  if (value === null || value === undefined) return '';
+  return String(value).trim();
+};
+
+const getVisibleUsers = (users, currentUserId) => users.filter(user => user.id !== currentUserId);
+
+const applyEqualityFilters = (users, filters) => {
+  if (!Array.isArray(filters) || filters.length === 0) {
+    return users;
+  }
+
+  return users.filter(user => filters.every(filter => {
+    const field = String(filter?.field || '').toLowerCase();
+    const value = normalizeFieldValue(filter?.value).toLowerCase();
+
+    if (!SUPPORTED_PUBLIC_FIELDS.includes(field) || !value) {
+      return true;
+    }
+
+    return normalizeFieldValue(user[field]).toLowerCase() === value;
+  }));
+};
+
+const summarizeDistinctValues = (message, field, visibleUsers) => {
+  const language = detectLanguage(message);
+  const values = [...new Set(visibleUsers
+    .map(user => normalizeFieldValue(user[field]))
+    .filter(Boolean))].sort((left, right) => left.localeCompare(right));
+
+  if (values.length === 0) {
+    return language === 'zh'
+      ? `根据当前公开资料，暂无可见的${field}信息。`
+      : `Based on current public profiles, there is no visible ${field} information yet.`;
+  }
+
+  return language === 'zh'
+    ? `根据当前公开资料，可见的${field}有：${values.join('、')}。`
+    : `Based on current public profiles, visible ${field} values are: ${values.join(', ')}.`;
+};
+
+const summarizeCountByValue = (message, field, visibleUsers) => {
+  const language = detectLanguage(message);
+  const counts = visibleUsers.reduce((accumulator, user) => {
+    const value = normalizeFieldValue(user[field]);
+    if (!value) return accumulator;
+    accumulator[value] = (accumulator[value] || 0) + 1;
+    return accumulator;
+  }, {});
+
+  const sorted = Object.entries(counts)
+    .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]));
+
+  if (sorted.length === 0) {
+    return language === 'zh'
+      ? `根据当前公开资料，暂无可统计的${field}信息。`
+      : `Based on current public profiles, there is no visible ${field} data to count.`;
+  }
+
+  const detail = sorted
+    .map(([value, count]) => language === 'zh' ? `${value}（${count}人）` : `${value} (${count})`)
+    .join(language === 'zh' ? '、' : ', ');
+
+  return language === 'zh'
+    ? `根据当前公开资料，${field}分布为：${detail}。`
+    : `Based on current public profiles, ${field} distribution is: ${detail}.`;
+};
+
+const summarizeTopValue = (message, field, visibleUsers) => {
+  const language = detectLanguage(message);
+  const counts = visibleUsers.reduce((accumulator, user) => {
+    const value = normalizeFieldValue(user[field]);
+    if (!value) return accumulator;
+    accumulator[value] = (accumulator[value] || 0) + 1;
+    return accumulator;
+  }, {});
+
+  const sorted = Object.entries(counts)
+    .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]));
+
+  if (sorted.length === 0) {
+    return language === 'zh'
+      ? `根据当前公开资料，暂无可用于比较“最多/最高”的${field}信息。`
+      : `Based on current public profiles, there is no visible ${field} data for top-value comparison.`;
+  }
+
+  const topCount = sorted[0][1];
+  const topValues = sorted.filter(([, count]) => count === topCount).map(([value]) => value);
+
+  if (language === 'zh') {
+    return topValues.length === 1
+      ? `根据当前公开资料，${field}里最多的是 ${topValues[0]}，共有 ${topCount} 人。`
+      : `根据当前公开资料，${field}里并列最多的是 ${topValues.join('、')}，各有 ${topCount} 人。`;
+  }
+
+  return topValues.length === 1
+    ? `Based on current public profiles, the most common ${field} is ${topValues[0]} with ${topCount} users.`
+    : `Based on current public profiles, the top ${field} values are tied between ${topValues.join(', ')} with ${topCount} users each.`;
+};
+
+const summarizeUsersWithValue = (message, field, value, visibleUsers) => {
+  const language = detectLanguage(message);
+  const normalizedValue = normalizeFieldValue(value).toLowerCase();
+
+  if (!normalizedValue) {
+    return language === 'zh'
+      ? `请先告诉我你要筛选的${field}值。`
+      : `Please specify the ${field} value you want to filter by.`;
+  }
+
+  const matchedUsers = visibleUsers.filter(user => normalizeFieldValue(user[field]).toLowerCase() === normalizedValue);
+
+  if (matchedUsers.length === 0) {
+    return language === 'zh'
+      ? `根据当前公开资料，没有用户公开显示 ${field} = ${value}。`
+      : `Based on current public profiles, no user publicly shows ${field} = ${value}.`;
+  }
+
+  const names = matchedUsers.map(user => user.name).join(language === 'zh' ? '、' : ', ');
+  return language === 'zh'
+    ? `根据当前公开资料，${field}为 ${value} 的用户有：${names}。`
+    : `Based on current public profiles, users with ${field} = ${value} are: ${names}.`;
+};
+
+const executePublicDataPlan = (message, plan, users, currentUserId) => {
+  const operation = String(plan?.operation || '').toLowerCase();
+  const field = String(plan?.field || '').toLowerCase();
+  const filters = Array.isArray(plan?.filters) ? plan.filters : [];
+  const value = plan?.value;
+
+  if (!SUPPORTED_PUBLIC_FIELDS.includes(field)) {
+    return null;
+  }
+
+  const visibleUsers = applyEqualityFilters(getVisibleUsers(users, currentUserId), filters);
+
+  if (operation === 'list_values') {
+    return summarizeDistinctValues(message, field, visibleUsers);
+  }
+
+  if (operation === 'count_by_value') {
+    return summarizeCountByValue(message, field, visibleUsers);
+  }
+
+  if (operation === 'top_value') {
+    return summarizeTopValue(message, field, visibleUsers);
+  }
+
+  if (operation === 'list_users_with_value') {
+    return summarizeUsersWithValue(message, field, value, visibleUsers);
+  }
+
+  return null;
+};
+
+const planPublicDataQuery = async (message) => {
+  const plannerPrompt = `You are a query planner for SPMS public profile data.
+Decide whether the user's message should be answered by querying structured public data instead of free-form chat.
+
+Supported operations:
+- list_values: list distinct values of a field
+- count_by_value: count users grouped by field value
+- top_value: find the field value with the highest count
+- list_users_with_value: list user names where field equals value
+
+Supported fields:
+- major, bio, phone, address, birthday, role, name
+
+Rules:
+- Only return shouldUseData=true when the user clearly asks for lookup/statistics/listing over public profile fields.
+- Never invent unsupported field or operation.
+- filters must be equality filters only, array of { field, value }.
+- Return strict JSON only.`;
+
+  try {
+    const response = await openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      temperature: 0,
+      response_format: { type: 'json_object' },
+      messages: [
+        { role: 'system', content: plannerPrompt },
+        { role: 'user', content: String(message || '') }
+      ]
+    });
+
+    const raw = response.choices?.[0]?.message?.content;
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw);
+    if (!parsed?.shouldUseData) return null;
+
+    return {
+      operation: parsed.operation,
+      field: parsed.field,
+      value: parsed.value,
+      filters: parsed.filters
+    };
+  } catch (error) {
+    return null;
+  }
+};
 
 const buildPublicUserDirectory = (users, currentUserId) => {
   const visibleUsers = users.filter(user => user.id !== currentUserId);
@@ -33,20 +310,7 @@ const buildPublicUserDirectory = (users, currentUserId) => {
 };
 
 const buildPublicMajorStats = (users, currentUserId) => {
-  const majorCounts = users
-    .filter(user => user.id !== currentUserId)
-    .reduce((counts, user) => {
-      const major = normalizeMajor(user.major);
-      if (!major) {
-        return counts;
-      }
-
-      counts[major] = (counts[major] || 0) + 1;
-      return counts;
-    }, {});
-
-  const sortedMajors = Object.entries(majorCounts)
-    .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]));
+  const sortedMajors = sortMajorCounts(buildMajorCounts(users, currentUserId));
 
   if (sortedMajors.length === 0) {
     return '（当前没有可用于统计的公开专业信息）';
@@ -205,6 +469,45 @@ exports.sendMessage = async (req, res) => {
     const allUsers = await getAllUsersWithPrivacy();
     const publicUserDirectory = buildPublicUserDirectory(allUsers, currentUser.id);
     const publicMajorStats = buildPublicMajorStats(allUsers, currentUser.id);
+
+    const dataPlan = await planPublicDataQuery(message);
+    const dynamicDataReply = dataPlan
+      ? executePublicDataPlan(message, dataPlan, allUsers, currentUser.id)
+      : null;
+
+    if (dynamicDataReply) {
+      conversations[authenticatedUserId].push({
+        role: 'assistant',
+        content: dynamicDataReply
+      });
+
+      if (conversations[authenticatedUserId].length > 20) {
+        conversations[authenticatedUserId] = conversations[authenticatedUserId].slice(-20);
+      }
+
+      return res.json({
+        message: dynamicDataReply,
+        conversationHistory: conversations[authenticatedUserId]
+      });
+    }
+
+    if (isMajorListQuestion(message) || isMajorRankingQuestion(message)) {
+      const directReply = buildMajorSummaryReply(message, allUsers, currentUser.id);
+
+      conversations[authenticatedUserId].push({
+        role: 'assistant',
+        content: directReply
+      });
+
+      if (conversations[authenticatedUserId].length > 20) {
+        conversations[authenticatedUserId] = conversations[authenticatedUserId].slice(-20);
+      }
+
+      return res.json({
+        message: directReply,
+        conversationHistory: conversations[authenticatedUserId]
+      });
+    }
 
     // 构建系统提示词
     let systemPrompt = `你是 SPMS（学生信息管理系统）的智能助手。你的职责是帮助用户查询和管理他们的个人信息、浏览其他用户信息，以及回答关于系统的问题。
