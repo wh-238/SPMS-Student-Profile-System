@@ -1,63 +1,23 @@
 import { useEffect, useRef, useState } from 'react'
 import API from '../api/api'
+import { useAuth } from '../context/AuthContext'
 
 function ChatWidget() {
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState([])
   const [inputMessage, setInputMessage] = useState('')
   const [loading, setLoading] = useState(false)
-  const [profile, setProfile] = useState(null)
   const [error, setError] = useState('')
-  const [isAuthenticated, setIsAuthenticated] = useState(() => !!localStorage.getItem('token'))
   const messagesEndRef = useRef(null)
+  const { isAuthenticated, isCheckingAuth, profile } = useAuth()
 
-  // 检查认证状态
-  const checkAuth = async () => {
-    const token = localStorage.getItem('token')
-    if (token) {
-      setIsAuthenticated(true)
-      try {
-        const res = await API.get('/profile/me')
-        setProfile(res.data)
-      } catch (err) {
-        setProfile(null)
-      }
-    } else {
-      setIsAuthenticated(false)
-      setProfile(null)
-      setIsOpen(false) // 登出时关闭弹窗
-      setMessages([]) // 清空消息
-    }
-  }
-
-  // 监听 token 变化和页面可见性
   useEffect(() => {
-    checkAuth()
-
-    // 监听 storage 事件（其他标签页改变）
-    const handleStorageChange = (e) => {
-      if (e.key === 'token') {
-        checkAuth()
-      }
+    if (!isAuthenticated) {
+      setIsOpen(false)
+      setMessages([])
+      setError('')
     }
-
-    // 监听页面可见性（从其他标签页切回来）
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        checkAuth()
-      }
-    }
-
-    window.addEventListener('storage', handleStorageChange)
-    window.addEventListener('auth-change', checkAuth)
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange)
-      window.removeEventListener('auth-change', checkAuth)
-      document.removeEventListener('visibilitychange', handleVisibilityChange)
-    }
-  }, [])
+  }, [isAuthenticated])
 
   // 自动滚动到底部
   useEffect(() => {
@@ -67,7 +27,7 @@ function ChatWidget() {
   }, [messages, loading])
 
   // 如果未登录则不显示气泡
-  if (!isAuthenticated) return null
+  if (isCheckingAuth || !isAuthenticated) return null
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || !profile) return

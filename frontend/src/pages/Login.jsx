@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useTheme } from '../hooks/useTheme'
+import { useAuth } from '../context/AuthContext'
 import API from '../api/api'
 
 function Login() {
@@ -10,6 +11,7 @@ function Login() {
   const [error, setError] = useState('')
   const navigate = useNavigate()
   const { colors } = useTheme()
+  const { login } = useAuth()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -21,9 +23,8 @@ function Login() {
         email,
         password
       })
-      localStorage.setItem('token', res.data.token)
-      window.dispatchEvent(new Event('auth-change'))
-      navigate('/dashboard')
+      const isValid = await login(res.data.token)
+      navigate(isValid ? '/dashboard' : '/login', { replace: true })
     } catch (error) {
       setError(error.response?.data?.message || 'Login failed')
     } finally {

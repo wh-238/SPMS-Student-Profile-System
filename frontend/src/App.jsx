@@ -1,5 +1,6 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Navigate, Routes, Route } from 'react-router-dom'
 import { ThemeProvider } from './context/ThemeContext'
+import { AuthProvider, useAuth } from './context/AuthContext'
 import Navbar from './components/Navbar'
 import ProtectedRoute from './components/ProtectedRoute'
 import ChatWidget from './components/ChatWidget'
@@ -15,6 +16,20 @@ import Privacy from './pages/Privacy'
 import SearchUsers from './pages/SearchUsers'
 import PublicProfile from './pages/PublicProfile'
 
+function GuestRoute({ children }) {
+  const { isAuthenticated, isCheckingAuth } = useAuth()
+
+  if (isCheckingAuth) {
+    return null
+  }
+
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />
+  }
+
+  return children
+}
+
 function AppContent() {
   const { colors } = useTheme()
 
@@ -24,9 +39,9 @@ function AppContent() {
       <ChatWidget />
       <div style={{ background: colors.bg, minHeight: 'calc(100vh - 64px)' }}>
         <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          <Route path="/" element={<GuestRoute><Login /></GuestRoute>} />
+          <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
+          <Route path="/register" element={<GuestRoute><Register /></GuestRoute>} />
 
           <Route
             path="/dashboard"
@@ -101,7 +116,9 @@ function AppContent() {
 function App() {
   return (
     <ThemeProvider>
-      <AppContent />
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
     </ThemeProvider>
   )
 }

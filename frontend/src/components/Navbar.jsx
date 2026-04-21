@@ -1,14 +1,14 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useTheme } from '../hooks/useTheme'
+import { useAuth } from '../context/AuthContext'
 
 function Navbar() {
   const navigate = useNavigate()
-  const token = localStorage.getItem('token')
   const { isDark, toggleTheme, colors } = useTheme()
+  const { isAuthenticated, isCheckingAuth, logout } = useAuth()
 
   const handleLogout = () => {
-    localStorage.removeItem('token')
-    window.dispatchEvent(new Event('auth-change'))
+    logout()
     navigate('/login')
   }
 
@@ -43,7 +43,7 @@ function Navbar() {
           </Link>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-            {!token ? (
+            {!isAuthenticated && !isCheckingAuth ? (
               <>
                 <Link
                   to="/login"
@@ -74,7 +74,7 @@ function Navbar() {
                   Register
                 </Link>
               </>
-            ) : (
+            ) : isAuthenticated ? (
               <>
                 <Link
                   to="/dashboard"
@@ -109,7 +109,7 @@ function Navbar() {
                   Logout
                 </button>
               </>
-            )}
+            ) : null}
 
             <button
               onClick={toggleTheme}
