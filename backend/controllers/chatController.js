@@ -13,15 +13,14 @@ const SUPPORTED_PUBLIC_FIELDS = ['major', 'bio', 'phone', 'address', 'birthday',
 
 const detectLanguage = (text) => (/[^\u0000-\u007f]/.test(String(text || '')) ? 'zh' : 'en');
 
-const getPublicMajorEntries = (users, currentUserId) => users
-  .filter(user => user.id !== currentUserId)
+const getPublicMajorEntries = (users) => users
   .map(user => ({
     ...user,
     major: normalizeMajor(user.major)
   }))
   .filter(user => user.major);
 
-const buildMajorCounts = (users, currentUserId) => getPublicMajorEntries(users, currentUserId)
+const buildMajorCounts = (users) => getPublicMajorEntries(users)
   .reduce((counts, user) => {
     counts[user.major] = (counts[user.major] || 0) + 1;
     return counts;
@@ -29,6 +28,12 @@ const buildMajorCounts = (users, currentUserId) => getPublicMajorEntries(users, 
 
 const sortMajorCounts = (majorCounts) => Object.entries(majorCounts)
   .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]));
+
+const isCountQuestion = (message) => {
+  const text = String(message || '').toLowerCase();
+
+  return /how many|number of|count of|多少人|几个人|几人|多少位/.test(text);
+};
 
 const isMajorListQuestion = (message) => {
   const text = String(message || '').toLowerCase();
@@ -48,9 +53,9 @@ const isMajorRankingQuestion = (message) => {
   );
 };
 
-const buildMajorSummaryReply = (message, users, currentUserId) => {
+const buildMajorSummaryReply = (message, users) => {
   const language = detectLanguage(message);
-  const majorCounts = buildMajorCounts(users, currentUserId);
+  const majorCounts = buildMajorCounts(users);
   const sortedMajors = sortMajorCounts(majorCounts);
 
   if (sortedMajors.length === 0) {
@@ -90,7 +95,48 @@ const normalizeFieldValue = (value) => {
   return String(value).trim();
 };
 
-const getVisibleUsers = (users, currentUserId) => users.filter(user => user.id !== currentUserId);
+const getQueryableUsers = (users, currentUser) => users.map(user => {
+  if (user.id !== currentUser.id) {
+    return user;
+  }
+
+  return {
+    ...user,
+    major: currentUser.major || user.major,
+    bio: currentUser.bio || user.bio,
+    phone: currentUser.phone || user.phone,
+    address: currentUser.address || user.address,
+    birthday: currentUser.birthday || user.birthday
+  };
+});
+
+const findMentionedMajor = (message, users) => {
+  const text = String(message || '').toLowerCase();
+  const majors = [...new Set(users
+    .map(user => normalizeMajor(user.major))
+    .filter(Boolean))]
+    .sort((left, right) => right.length - left.length);
+
+  return majors.find(major => text.includes(major.toLowerCase())) || null;
+};
+
+const buildMajorCountReply = (message, users) => {
+  if (!isCountQuestion(message)) {
+    return null;
+  }
+
+  const major = findMentionedMajor(message, users);
+  if (!major) {
+    return null;
+  }
+
+  const language = detectLanguage(message);
+  const count = users.filter(user => normalizeMajor(user.major).toLowerCase() === major.toLowerCase()).length;
+
+  return language === 'zh'
+    ? `根据当前公开资料，${major} 专业共有 ${count} 人。`
+    : `Based on the current public profiles, there ${count === 1 ? 'is' : 'are'} ${count} student${count === 1 ? '' : 's'} in ${major}.`;
+};
 
 const applyEqualityFilters = (users, filters) => {
   if (!Array.isArray(filters) || filters.length === 0) {
@@ -209,7 +255,7 @@ const summarizeUsersWithValue = (message, field, value, visibleUsers) => {
     : `Based on current public profiles, users with ${field} = ${value} are: ${names}.`;
 };
 
-const executePublicDataPlan = (message, plan, users, currentUserId) => {
+const executePublicDataPlan = (message, plan, users) => {
   const operation = String(plan?.operation || '').toLowerCase();
   const field = String(plan?.field || '').toLowerCase();
   const filters = Array.isArray(plan?.filters) ? plan.filters : [];
@@ -219,7 +265,7 @@ const executePublicDataPlan = (message, plan, users, currentUserId) => {
     return null;
   }
 
-  const visibleUsers = applyEqualityFilters(getVisibleUsers(users, currentUserId), filters);
+  const visibleUsers = applyEqualityFilters(users, filters);
 
   if (operation === 'list_values') {
     return summarizeDistinctValues(message, field, visibleUsers);
@@ -309,8 +355,8 @@ const buildPublicUserDirectory = (users, currentUserId) => {
     .join('\n');
 };
 
-const buildPublicMajorStats = (users, currentUserId) => {
-  const sortedMajors = sortMajorCounts(buildMajorCounts(users, currentUserId));
+const buildPublicMajorStats = (users) => {
+  const sortedMajors = sortMajorCounts(buildMajorCounts(users));
 
   if (sortedMajors.length === 0) {
     return '（当前没有可用于统计的公开专业信息）';
@@ -467,12 +513,30 @@ exports.sendMessage = async (req, res) => {
     });
 
     const allUsers = await getAllUsersWithPrivacy();
+    const queryableUsers = getQueryableUsers(allUsers, currentUser);
     const publicUserDirectory = buildPublicUserDirectory(allUsers, currentUser.id);
-    const publicMajorStats = buildPublicMajorStats(allUsers, currentUser.id);
+    const publicMajorStats = buildPublicMajorStats(queryableUsers);
+
+    const exactMajorCountReply = buildMajorCountReply(message, queryableUsers);
+    if (exactMajorCountReply) {
+      conversations[authenticatedUserId].push({
+        role: 'assistant',
+        content: exactMajorCountReply
+      });
+
+      if (conversations[authenticatedUserId].length > 20) {
+        conversations[authenticatedUserId] = conversations[authenticatedUserId].slice(-20);
+      }
+
+      return res.json({
+        message: exactMajorCountReply,
+        conversationHistory: conversations[authenticatedUserId]
+      });
+    }
 
     const dataPlan = await planPublicDataQuery(message);
     const dynamicDataReply = dataPlan
-      ? executePublicDataPlan(message, dataPlan, allUsers, currentUser.id)
+      ? executePublicDataPlan(message, dataPlan, queryableUsers)
       : null;
 
     if (dynamicDataReply) {
@@ -492,7 +556,7 @@ exports.sendMessage = async (req, res) => {
     }
 
     if (isMajorListQuestion(message) || isMajorRankingQuestion(message)) {
-      const directReply = buildMajorSummaryReply(message, allUsers, currentUser.id);
+      const directReply = buildMajorSummaryReply(message, queryableUsers);
 
       conversations[authenticatedUserId].push({
         role: 'assistant',
