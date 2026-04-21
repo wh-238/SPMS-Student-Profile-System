@@ -1,0 +1,100 @@
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Han",
+  "email": "han@test.com",
+  "password": "123456"
+}
+
+###
+POST http://localhost:5000/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "han@test.com",
+  "password": "123456"
+}
+
+###
+GET http://localhost:5000/api/profile/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6InVzZXIiLCJpYXQiOjE3NzY2NjcyMjQsImV4cCI6MTc3Njc1MzYyNH0.FhX5xoPTA9TEHmyUpm-GG2f1k00-yRVw_yoKZ-ttsOY
+
+###
+PUT http://localhost:5000/api/profile/me
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6InVzZXIiLCJpYXQiOjE3NzY2NjcyMjQsImV4cCI6MTc3Njc1MzYyNH0.FhX5xoPTA9TEHmyUpm-GG2f1k00-yRVw_yoKZ-ttsOY
+
+{
+  "name": "Han Wang",
+  "major": "Computer Science",
+  "bio": "Kean University student",
+  "phone": "1234567890",
+  "address": "Union, NJ",
+  "birthday": "2004-03-01"
+}
+
+###
+GET http://localhost:5000/api/privacy/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6InVzZXIiLCJpYXQiOjE3NzY2NjcyMjQsImV4cCI6MTc3Njc1MzYyNH0.FhX5xoPTA9TEHmyUpm-GG2f1k00-yRVw_yoKZ-ttsOY
+
+###
+PUT http://localhost:5000/api/privacy/me
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwicm9sZSI6InVzZXIiLCJpYXQiOjE3NzY2NjcyMjQsImV4cCI6MTc3Njc1MzYyNH0.FhX5xoPTA9TEHmyUpm-GG2f1k00-yRVw_yoKZ-ttsOY
+
+{
+  "show_major": true,
+  "show_bio": true,
+  "show_phone": false,
+  "show_address": false,
+  "show_birthday": false
+}
+
+###
+GET http://localhost:5000/api/profile/public/1
+
+###
+GET http://localhost:5000/api/users/search?keyword=Han
+
+###
+GET http://localhost:5000/api/users/search?keyword=Han&page=1&limit=5
+
+###
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Hana",
+  "email": "hana@test.com",
+  "password": "123456"
+}
+
+###
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Hans",
+  "email": "hans@test.com",
+  "password": "123456"
+}
+
+###
+POST http://localhost:5000/api/auth/register
+Content-Type: application/json
+
+{
+  "name": "Henry",
+  "email": "henry@test.com",
+  "password": "123456"
+}
+
+###
+GET http://localhost:5000/api/users/search?keyword=H&page=1&limit=2
+
+###
+GET http://localhost:5000/api/users/search?keyword=H&page=2&limit=2
+
+GET http://localhost:5000/api/users/search?keyword=ZZZ
+
