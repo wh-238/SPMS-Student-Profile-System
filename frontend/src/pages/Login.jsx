@@ -65,7 +65,7 @@ function Login() {
               marginBottom: '8px'
             }}
           >
-            Welcome back
+            Welcome
           </h1>
           <p style={{ color: colors.textSecondary, fontSize: '14px', margin: 0 }}>
             Sign in to your SPMS account
