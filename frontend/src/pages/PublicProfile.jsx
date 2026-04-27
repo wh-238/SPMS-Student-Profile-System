@@ -1,15 +1,22 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useTheme } from '../hooks/useTheme'
+import { useAuth } from '../context/AuthContext'
 import API from '../api/api'
+import { listUserPosts } from '../api/communityApi'
+import PostCard from '../components/community/PostCard'
 
 function PublicProfile() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const [profile, setProfile] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
   const { colors } = useTheme()
+  const { profile: viewer } = useAuth()
+  const [profile, setProfile] = useState(null)
+  const [posts, setPosts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [postsLoading, setPostsLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [postError, setPostError] = useState('')
 
   const formatBirthday = (birthday) => {
     if (!birthday) return ''
@@ -34,6 +41,28 @@ function PublicProfile() {
 
     fetchPublicProfile()
   }, [id])
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      if (!viewer) {
+        return
+      }
+
+      setPostsLoading(true)
+      setPostError('')
+
+      try {
+        const result = await listUserPosts({ viewer, userId: id })
+        setPosts(result.filter((post) => post.status === 'active'))
+      } catch (err) {
+        setPostError(err.response?.data?.message || "Failed to load this user's posts")
+      } finally {
+        setPostsLoading(false)
+      }
+    }
+
+    fetchPosts()
+  }, [id, viewer])
 
   if (loading) {
     return (
@@ -64,13 +93,13 @@ function PublicProfile() {
   }
 
   return (
-    <div style={{ background: colors.bg, minHeight: 'calc(100vh - 64px)', padding: '32px 20px' }}>
-      <div style={{ maxWidth: '720px', margin: '0 auto' }}>
+    <div style={{ background: colors.bg, minHeight: 'calc(100vh - 64px)', padding: '32px 20px 56px' }}>
+      <div style={{ maxWidth: '920px', margin: '0 auto', display: 'grid', gap: '24px' }}>
         <button
           type="button"
           onClick={() => navigate('/search')}
           style={{
-            marginBottom: '20px',
+            width: 'fit-content',
             padding: '10px 16px',
             background: colors.bgSecondary,
             color: colors.text,
@@ -80,24 +109,24 @@ function PublicProfile() {
             fontWeight: 600,
             cursor: 'pointer'
           }}
-          onMouseEnter={(e) => (e.target.style.background = colors.bgTertiary)}
-          onMouseLeave={(e) => (e.target.style.background = colors.bgSecondary)}
         >
-          ← Back to Search Users
+          {'<- Back to Search Users'}
         </button>
 
-        <h1 style={{ fontSize: '30px', fontWeight: 700, color: colors.text, marginBottom: '24px' }}>Public Profile</h1>
-
-        <div
+        <section
           style={{
             background: colors.bgSecondary,
             border: `1px solid ${colors.border}`,
-            borderRadius: '12px',
-            padding: '24px',
-            boxShadow: `0 4px 12px ${colors.shadow}`
+            borderRadius: '16px',
+            padding: '28px',
+            boxShadow: `0 8px 18px ${colors.shadow}`
           }}
         >
-          <h2 style={{ fontSize: '24px', fontWeight: 700, color: colors.text, marginTop: 0, marginBottom: '16px' }}>{profile.name}</h2>
+          <h1 style={{ fontSize: '30px', fontWeight: 700, color: colors.text, marginBottom: '24px' }}>Public Profile</h1>
+
+          <h2 style={{ fontSize: '24px', fontWeight: 700, color: colors.text, marginTop: 0, marginBottom: '16px' }}>
+            {profile.name}
+          </h2>
 
           {profile.major && (
             <p style={{ margin: 0, marginBottom: '10px', color: colors.textSecondary, fontSize: '15px' }}>
@@ -128,7 +157,59 @@ function PublicProfile() {
               <strong>Birthday:</strong> {formatBirthday(profile.birthday)}
             </p>
           )}
-        </div>
+        </section>
+
+        <section style={{ display: 'grid', gap: '16px' }}>
+          <div>
+            <h2 style={{ fontSize: '24px', fontWeight: 700, color: colors.text, margin: 0, marginBottom: '6px' }}>
+              {profile.name}&apos;s posts
+            </h2>
+            <p style={{ color: colors.textSecondary, fontSize: '14px', margin: 0 }}>
+              Posts below reflect the new community/blog feature and respect each post&apos;s visibility setting.
+            </p>
+          </div>
+
+          {postError && (
+            <div
+              style={{
+                background: colors.danger,
+                color: '#fff',
+                padding: '12px 16px',
+                borderRadius: '12px',
+                fontSize: '14px'
+              }}
+            >
+              {postError}
+            </div>
+          )}
+
+          {postsLoading ? (
+            <div style={{ padding: '50px 20px', textAlign: 'center', color: colors.textSecondary }}>
+              Loading posts...
+            </div>
+          ) : posts.length === 0 ? (
+            <div
+              style={{
+                background: colors.bgSecondary,
+                border: `1px dashed ${colors.border}`,
+                borderRadius: '16px',
+                padding: '32px 20px',
+                color: colors.textSecondary,
+                textAlign: 'center'
+              }}
+            >
+              This user has not published any visible posts yet.
+            </div>
+          ) : (
+            posts.map((post) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                showAuthor={false}
+              />
+            ))
+          )}
+        </section>
       </div>
     </div>
   )

@@ -7,6 +7,7 @@ import ChatWidget from './components/ChatWidget'
 import { useTheme } from './hooks/useTheme'
 import AdminUsers from './pages/AdminUsers'
 import AdminLogs from './pages/AdminLogs'
+import AdminCommunity from './pages/AdminCommunity'
 
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -15,6 +16,7 @@ import EditProfile from './pages/EditProfile'
 import Privacy from './pages/Privacy'
 import SearchUsers from './pages/SearchUsers'
 import PublicProfile from './pages/PublicProfile'
+import Community from './pages/Community'
 
 function GuestRoute({ children }) {
   const { isAuthenticated, isCheckingAuth } = useAuth()
@@ -89,6 +91,15 @@ function AppContent() {
           />
 
           <Route
+            path="/community"
+            element={
+              <ProtectedRoute>
+                <Community />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
             path="/admin/users"
             element={
               <ProtectedRoute>
@@ -102,6 +113,15 @@ function AppContent() {
             element={
               <ProtectedRoute>
                 <AdminLogs />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/admin/community"
+            element={
+              <ProtectedRoute>
+                <AdminCommunity />
               </ProtectedRoute>
             }
           />

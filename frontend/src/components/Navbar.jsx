@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext'
 function Navbar() {
   const navigate = useNavigate()
   const { isDark, toggleTheme, colors } = useTheme()
-  const { isAuthenticated, isCheckingAuth, logout } = useAuth()
+  const { isAuthenticated, isCheckingAuth, logout, profile } = useAuth()
 
   const handleLogout = () => {
     logout()
@@ -90,6 +90,36 @@ function Navbar() {
                 >
                   Dashboard
                 </Link>
+                <Link
+                  to="/community"
+                  style={{
+                    color: colors.textSecondary,
+                    textDecoration: 'none',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    transition: 'color 0.2s'
+                  }}
+                  onMouseEnter={e => e.target.style.color = colors.primary}
+                  onMouseLeave={e => e.target.style.color = colors.textSecondary}
+                >
+                  Community
+                </Link>
+                {profile?.role === 'admin' && (
+                  <Link
+                    to="/admin/community"
+                    style={{
+                      color: colors.textSecondary,
+                      textDecoration: 'none',
+                      fontSize: '14px',
+                      fontWeight: 500,
+                      transition: 'color 0.2s'
+                    }}
+                    onMouseEnter={e => e.target.style.color = colors.primary}
+                    onMouseLeave={e => e.target.style.color = colors.textSecondary}
+                  >
+                    Moderation
+                  </Link>
+                )}
                 <button
                   onClick={handleLogout}
                   style={{

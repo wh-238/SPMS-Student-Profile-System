@@ -98,3 +98,79 @@ GET http://localhost:5000/api/users/search?keyword=H&page=2&limit=2
 
 GET http://localhost:5000/api/users/search?keyword=ZZZ
 
+###
+GET http://localhost:5000/api/posts
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+POST http://localhost:5000/api/posts
+Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN_HERE
+
+{
+  "title": "My first community post",
+  "content": "This is a test post for the new community feature.",
+  "visibility": "public"
+}
+
+###
+GET http://localhost:5000/api/posts/user/1
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+PUT http://localhost:5000/api/posts/1
+Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN_HERE
+
+{
+  "title": "Updated post title",
+  "content": "Updated post content.",
+  "visibility": "members"
+}
+
+###
+POST http://localhost:5000/api/posts/1/likes/toggle
+Authorization: Bearer YOUR_TOKEN_HERE
+
+###
+POST http://localhost:5000/api/posts/1/comments
+Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN_HERE
+
+{
+  "content": "Nice post!"
+}
+
+###
+POST http://localhost:5000/api/posts/1/reports
+Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN_HERE
+
+{
+  "reason": "Spam or inappropriate content"
+}
+
+###
+GET http://localhost:5000/api/admin/posts/reports
+Authorization: Bearer YOUR_ADMIN_TOKEN_HERE
+
+###
+POST http://localhost:5000/api/admin/posts/1/moderate
+Content-Type: application/json
+Authorization: Bearer YOUR_ADMIN_TOKEN_HERE
+
+{
+  "action": "dismiss",
+  "note": "Checked by admin and kept visible"
+}
+
+###
+POST http://localhost:5000/api/admin/posts/1/moderate
+Content-Type: application/json
+Authorization: Bearer YOUR_ADMIN_TOKEN_HERE
+
+{
+  "action": "remove",
+  "note": "Removed for policy violation"
+}
+

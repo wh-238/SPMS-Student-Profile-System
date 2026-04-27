@@ -8,6 +8,7 @@ const privacyRoutes = require('./routes/privacyRoutes');
 const userRoutes = require('./routes/userRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const chatRoutes = require('./routes/chatRoutes');
+const postsRoutes = require('./routes/postsRoutes');
 
 
 
@@ -21,6 +22,7 @@ app.use('/api/privacy', privacyRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/posts', postsRoutes);
 
 // test route
 app.get('/', (req, res) => {

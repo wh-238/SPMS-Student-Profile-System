@@ -33,14 +33,15 @@ function Dashboard() {
     fetchProfile()
   }, [])
 
-  if (loading)
+  if (loading) {
     return (
       <div style={{ textAlign: 'center', padding: '60px 20px', color: colors.textSecondary }}>
         Loading profile...
       </div>
     )
+  }
 
-  if (error)
+  if (error) {
     return (
       <div
         style={{
@@ -54,8 +55,9 @@ function Dashboard() {
         {error}
       </div>
     )
+  }
 
-  if (!profile)
+  if (!profile) {
     return (
       <div
         style={{
@@ -69,122 +71,84 @@ function Dashboard() {
         Profile not found
       </div>
     )
+  }
+
+  const quickLinks = [
+    { to: '/edit-profile', label: 'Edit Profile', background: '#f59e0b', hover: '#d97706', textColor: '#fff' },
+    { to: '/privacy', label: 'Privacy Settings', background: colors.bgTertiary, hover: colors.border, textColor: colors.text, border: `1px solid ${colors.border}` },
+    { to: '/search', label: 'Search Users', background: '#06b6d4', hover: '#0891b2', textColor: '#fff' },
+    { to: '/community', label: 'Community Feed', background: '#8b5cf6', hover: '#7c3aed', textColor: '#fff' }
+  ]
+
+  const adminLinks = [
+    { to: '/admin/users', label: 'Admin Users', background: '#ef4444', hover: '#dc2626' },
+    { to: '/admin/logs', label: 'Admin Logs', background: '#1f2937', hover: '#111827' },
+    { to: '/admin/community', label: 'Community Moderation', background: '#7c2d12', hover: '#9a3412' }
+  ]
 
   return (
     <div style={{ background: colors.bg, minHeight: 'calc(100vh - 64px)', padding: '32px 20px' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        {/* 欢迎标题 */}
         <div style={{ marginBottom: '40px' }}>
           <h1 style={{ fontSize: '32px', fontWeight: 700, color: colors.text, margin: 0, marginBottom: '8px' }}>
             Welcome to SPMS Dashboard
           </h1>
           <p style={{ color: colors.textSecondary, fontSize: '15px', margin: 0 }}>
-            Manage your profile and explore the system
+            Manage your profile, explore other users, and publish community posts.
           </p>
         </div>
 
-        {/* 操作按钮 */}
         <div style={{ display: 'flex', gap: '12px', marginBottom: '32px', flexWrap: 'wrap' }}>
-          <Link
-            to="/edit-profile"
-            style={{
-              display: 'inline-block',
-              padding: '10px 18px',
-              background: '#f59e0b',
-              color: '#fff',
-              borderRadius: '8px',
-              textDecoration: 'none',
-              fontSize: '14px',
-              fontWeight: 600,
-              transition: 'background 0.2s'
-            }}
-            onMouseEnter={e => (e.target.style.background = '#d97706')}
-            onMouseLeave={e => (e.target.style.background = '#f59e0b')}
-          >
-            ✏️ Edit Profile
-          </Link>
-          <Link
-            to="/privacy"
-            style={{
-              display: 'inline-block',
-              padding: '10px 18px',
-              background: colors.bgTertiary,
-              color: colors.text,
-              border: `1px solid ${colors.border}`,
-              borderRadius: '8px',
-              textDecoration: 'none',
-              fontSize: '14px',
-              fontWeight: 600,
-              transition: 'background 0.2s'
-            }}
-            onMouseEnter={e => (e.target.style.background = colors.border)}
-            onMouseLeave={e => (e.target.style.background = colors.bgTertiary)}
-          >
-            🔒 Privacy Settings
-          </Link>
-          <Link
-            to="/search"
-            style={{
-              display: 'inline-block',
-              padding: '10px 18px',
-              background: '#06b6d4',
-              color: '#fff',
-              borderRadius: '8px',
-              textDecoration: 'none',
-              fontSize: '14px',
-              fontWeight: 600,
-              transition: 'background 0.2s'
-            }}
-            onMouseEnter={e => (e.target.style.background = '#0891b2')}
-            onMouseLeave={e => (e.target.style.background = '#06b6d4')}
-          >
-            🔍 Search Users
-          </Link>
+          {quickLinks.map((item) => (
+            <Link
+              key={item.to}
+              to={item.to}
+              style={{
+                display: 'inline-block',
+                padding: '10px 18px',
+                background: item.background,
+                color: item.textColor,
+                borderRadius: '8px',
+                textDecoration: 'none',
+                fontSize: '14px',
+                fontWeight: 600,
+                transition: 'background 0.2s',
+                border: item.border || 'none'
+              }}
+              onMouseEnter={(event) => (event.target.style.background = item.hover)}
+              onMouseLeave={(event) => (event.target.style.background = item.background)}
+            >
+              {item.label}
+            </Link>
+          ))}
         </div>
 
-        {/* Admin 按钮 */}
         {profile.role === 'admin' && (
           <div style={{ display: 'flex', gap: '12px', marginBottom: '32px', flexWrap: 'wrap' }}>
-            <Link
-              to="/admin/users"
-              style={{
-                display: 'inline-block',
-                padding: '10px 18px',
-                background: '#ef4444',
-                color: '#fff',
-                borderRadius: '8px',
-                textDecoration: 'none',
-                fontSize: '14px',
-                fontWeight: 600,
-                transition: 'background 0.2s'
-              }}
-              onMouseEnter={e => (e.target.style.background = '#dc2626')}
-              onMouseLeave={e => (e.target.style.background = '#ef4444')}
-            >
-              👥 Admin Users
-            </Link>
-            <Link
-              to="/admin/logs"
-              style={{
-                display: 'inline-block',
-                padding: '10px 18px',
-                background: '#1f2937',
-                color: '#fff',
-                borderRadius: '8px',
-                textDecoration: 'none',
-                fontSize: '14px',
-                fontWeight: 600,
-                transition: 'background 0.2s'
-              }}
-              onMouseEnter={e => (e.target.style.background = '#111827')}
-              onMouseLeave={e => (e.target.style.background = '#1f2937')}
-            >
-              📋 Admin Logs
-            </Link>
+            {adminLinks.map((item) => (
+              <Link
+                key={item.to}
+                to={item.to}
+                style={{
+                  display: 'inline-block',
+                  padding: '10px 18px',
+                  background: item.background,
+                  color: '#fff',
+                  borderRadius: '8px',
+                  textDecoration: 'none',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  transition: 'background 0.2s'
+                }}
+                onMouseEnter={(event) => (event.target.style.background = item.hover)}
+                onMouseLeave={(event) => (event.target.style.background = item.background)}
+              >
+                {item.label}
+              </Link>
+            ))}
           </div>
         )}
 
-        {/* 个人信息卡片 */}
         <div
           style={{
             background: colors.bgSecondary,
@@ -208,7 +172,7 @@ function Dashboard() {
               { label: 'Phone', value: profile.phone || 'Not set' },
               { label: 'Address', value: profile.address || 'Not set' },
               { label: 'Birthday', value: formatBirthday(profile.birthday) }
-            ].map(item => (
+            ].map((item) => (
               <div key={item.label}>
                 <p
                   style={{
