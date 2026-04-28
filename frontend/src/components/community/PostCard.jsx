@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react'
 import { useTheme } from '../../hooks/useTheme'
 import { useIsMobile } from '../../hooks/useIsMobile'
 import PostComposer from './PostComposer'
+import EmojiTray from './EmojiTray'
+import { appendEmojiToken } from './communityEmoji'
 
 const formatPostTime = (value) => {
   try {
@@ -36,6 +38,7 @@ function PostCard({
   const [reportReason, setReportReason] = useState('')
   const [showComments, setShowComments] = useState(false)
   const [showReportBox, setShowReportBox] = useState(false)
+  const displayTitle = post.title?.trim() || 'SESMag quick post'
 
   const visibilityStyles = useMemo(
     () => ({
@@ -156,7 +159,7 @@ function PostCard({
               </div>
 
               <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 700, color: colors.text, margin: 0, marginBottom: '8px' }}>
-                {post.title}
+                {displayTitle}
               </h2>
 
               <div style={{ color: colors.textSecondary, fontSize: '13px', display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
@@ -342,25 +345,32 @@ function PostCard({
 
               {onComment && (
                 <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', flexDirection: isMobile ? 'column' : 'row' }}>
-                  <textarea
-                    rows={3}
-                    value={comment}
-                    onChange={(event) => setComment(event.target.value)}
-                    placeholder="Add a comment..."
-                    style={{
-                      flex: '1 1 300px',
-                      width: '100%',
-                      boxSizing: 'border-box',
-                      padding: '12px',
-                      borderRadius: '12px',
-                      border: `1px solid ${colors.border}`,
-                      background: colors.bg,
-                      color: colors.text,
-                      fontSize: '14px',
-                      resize: 'vertical',
-                      minHeight: '84px'
-                    }}
-                  />
+                  <div style={{ flex: '1 1 300px', display: 'grid', gap: '10px' }}>
+                    <textarea
+                      rows={3}
+                      value={comment}
+                      onChange={(event) => setComment(event.target.value)}
+                      placeholder="Add a comment or just drop an emoji..."
+                      style={{
+                        width: '100%',
+                        boxSizing: 'border-box',
+                        padding: '12px',
+                        borderRadius: '12px',
+                        border: `1px solid ${colors.border}`,
+                        background: colors.bg,
+                        color: colors.text,
+                        fontSize: '14px',
+                        resize: 'vertical',
+                        minHeight: '84px'
+                      }}
+                    />
+                    <EmojiTray
+                      label="Quick emoji replies"
+                      onPick={(emoji) => {
+                        setComment((value) => appendEmojiToken(value, emoji))
+                      }}
+                    />
+                  </div>
                   <button
                     type="button"
                     onClick={handleComment}

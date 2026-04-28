@@ -133,7 +133,8 @@ function Community() {
               </h1>
               <p style={{ color: colors.textSecondary, fontSize: isMobile ? '14px' : '15px', lineHeight: 1.8, margin: 0 }}>
                 This page now covers the main social flow: posting blogs, browsing a shared
-                feed, liking, commenting, reporting, visibility labels, and moderation support.
+                feed, liking, commenting, reporting, visibility labels, moderation support,
+                and quick emoji posting for low-friction updates.
               </p>
             </div>
 
@@ -151,6 +152,7 @@ function Community() {
               </div>
               <div style={{ display: 'grid', gap: '10px', color: colors.textSecondary, fontSize: '14px' }}>
                 <div>Publish new blog-style posts</div>
+                <div>Drop emoji-only posts and comments</div>
                 <div>Browse the shared feed</div>
                 <div>Edit or delete your own posts</div>
                 <div>Like and comment on other posts</div>

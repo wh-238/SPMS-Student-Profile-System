@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useTheme } from '../../hooks/useTheme'
 import { useIsMobile } from '../../hooks/useIsMobile'
+import EmojiTray from './EmojiTray'
+import { appendEmojiToken } from './communityEmoji'
 
 function PostComposer({
   title: initialTitle = '',
@@ -17,6 +19,7 @@ function PostComposer({
   const [title, setTitle] = useState(initialTitle)
   const [content, setContent] = useState(initialContent)
   const [visibility, setVisibility] = useState(initialVisibility)
+  const [activeField, setActiveField] = useState('content')
   const [error, setError] = useState('')
 
   const handleSubmit = async (event) => {
@@ -24,8 +27,8 @@ function PostComposer({
     const trimmedTitle = title.trim()
     const trimmedContent = content.trim()
 
-    if (!trimmedTitle || !trimmedContent) {
-      setError('Please enter both a title and content before submitting.')
+    if (!trimmedContent) {
+      setError('Add some text or emoji to your post before submitting.')
       return
     }
 
@@ -40,7 +43,19 @@ function PostComposer({
       setTitle('')
       setContent('')
       setVisibility('public')
+      setActiveField('content')
     }
+  }
+
+  const handleEmojiPick = (emoji) => {
+    setError('')
+
+    if (activeField === 'title') {
+      setTitle((value) => appendEmojiToken(value, emoji))
+      return
+    }
+
+    setContent((value) => appendEmojiToken(value, emoji))
   }
 
   return (
@@ -59,7 +74,8 @@ function PostComposer({
           type="text"
           value={title}
           onChange={(event) => setTitle(event.target.value)}
-          placeholder="Give your post a clear title"
+          onFocus={() => setActiveField('title')}
+          placeholder="Optional title for your post"
           style={{
             width: '100%',
             boxSizing: 'border-box',
@@ -77,7 +93,8 @@ function PostComposer({
           rows={compact ? 5 : 7}
           value={content}
           onChange={(event) => setContent(event.target.value)}
-          placeholder="Share an update, reflection, project note, or blog post..."
+          onFocus={() => setActiveField('content')}
+          placeholder="Share an update, reflection, project note, blog post, or just a few emojis..."
           style={{
             width: '100%',
             boxSizing: 'border-box',
@@ -93,6 +110,15 @@ function PostComposer({
             minHeight: isMobile ? '140px' : compact ? '120px' : '160px'
           }}
         />
+
+        <EmojiTray
+          label={`SESMag quick emoji set · now adding to ${activeField === 'title' ? 'title' : 'post body'}`}
+          onPick={handleEmojiPick}
+        />
+
+        <div style={{ color: colors.textSecondary, fontSize: '13px', lineHeight: 1.6 }}>
+          Emoji-only posts are welcome here. Leave the title blank if you want and publish straight from the emoji tray.
+        </div>
 
         <div
           style={{

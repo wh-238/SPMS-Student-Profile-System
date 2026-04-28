@@ -174,10 +174,6 @@ const validatePostPayload = ({ title, content, visibility }) => {
   const trimmedContent = typeof content === 'string' ? content.trim() : '';
   const normalizedVisibility = VALID_VISIBILITIES.has(visibility) ? visibility : '';
 
-  if (!trimmedTitle) {
-    return { error: 'Title is required' };
-  }
-
   if (trimmedTitle.length > 200) {
     return { error: 'Title must be 200 characters or fewer' };
   }
