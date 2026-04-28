@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTheme } from '../hooks/useTheme'
 import { useAuth } from '../context/AuthContext'
+import { useIsMobile } from '../hooks/useIsMobile'
 import {
   addPostComment,
   createPost,
@@ -23,6 +24,7 @@ const filters = [
 function Community() {
   const { colors } = useTheme()
   const { profile } = useAuth()
+  const isMobile = useIsMobile()
   const [posts, setPosts] = useState([])
   const [filter, setFilter] = useState('all')
   const [loading, setLoading] = useState(true)
@@ -76,21 +78,27 @@ function Community() {
   }
 
   return (
-    <div style={{ background: colors.bg, minHeight: 'calc(100vh - 64px)', padding: '32px 20px 56px' }}>
+    <div
+      style={{
+        background: colors.bg,
+        minHeight: 'calc(100vh - 64px)',
+        padding: isMobile ? '20px 14px 40px' : '32px 20px 56px'
+      }}
+    >
       <div style={{ maxWidth: '1180px', margin: '0 auto', display: 'grid', gap: '24px' }}>
         <section
           style={{
             background: `linear-gradient(135deg, ${colors.bgSecondary} 0%, ${colors.bgTertiary} 100%)`,
             border: `1px solid ${colors.border}`,
             borderRadius: '24px',
-            padding: '30px',
+            padding: isMobile ? '20px' : '30px',
             boxShadow: `0 16px 40px ${colors.shadow}`
           }}
         >
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'minmax(0, 1.7fr) minmax(260px, 0.9fr)',
+              gridTemplateColumns: isMobile ? '1fr' : 'minmax(0, 1.7fr) minmax(260px, 0.9fr)',
               gap: '24px',
               alignItems: 'center'
             }}
@@ -104,18 +112,27 @@ function Community() {
                   borderRadius: '999px',
                   background: colors.primary,
                   color: '#fff',
-                  fontSize: '12px',
+                  fontSize: isMobile ? '11px' : '12px',
                   fontWeight: 700,
                   marginBottom: '14px'
                 }}
               >
                 Community blog
               </div>
-              <h1 style={{ fontSize: '38px', fontWeight: 800, color: colors.text, margin: 0, marginBottom: '12px' }}>
+              <h1
+                style={{
+                  fontSize: isMobile ? '28px' : '38px',
+                  lineHeight: isMobile ? 1.25 : 1.15,
+                  fontWeight: 800,
+                  color: colors.text,
+                  margin: 0,
+                  marginBottom: '12px'
+                }}
+              >
                 Share updates, project notes, and public reflections
               </h1>
-              <p style={{ color: colors.textSecondary, fontSize: '15px', lineHeight: 1.8, margin: 0 }}>
-                This page now covers the main social flow your professor asked for: posting blogs, browsing a shared
+              <p style={{ color: colors.textSecondary, fontSize: isMobile ? '14px' : '15px', lineHeight: 1.8, margin: 0 }}>
+                This page now covers the main social flow: posting blogs, browsing a shared
                 feed, liking, commenting, reporting, visibility labels, and moderation support.
               </p>
             </div>
@@ -125,7 +142,8 @@ function Community() {
                 padding: '18px',
                 borderRadius: '18px',
                 background: colors.bg,
-                border: `1px solid ${colors.border}`
+                border: `1px solid ${colors.border}`,
+                minWidth: 0
               }}
             >
               <div style={{ color: colors.text, fontSize: '16px', fontWeight: 700, marginBottom: '12px' }}>
@@ -144,7 +162,8 @@ function Community() {
                     style={{
                       marginTop: '8px',
                       display: 'inline-flex',
-                      width: 'fit-content',
+                      width: isMobile ? '100%' : 'fit-content',
+                      justifyContent: 'center',
                       padding: '10px 14px',
                       borderRadius: '10px',
                       background: colors.danger,
@@ -185,13 +204,14 @@ function Community() {
           style={{
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: 'center',
+            alignItems: isMobile ? 'stretch' : 'center',
             gap: '14px',
-            flexWrap: 'wrap'
+            flexWrap: 'wrap',
+            flexDirection: isMobile ? 'column' : 'row'
           }}
         >
           <div>
-            <h2 style={{ fontSize: '24px', fontWeight: 800, color: colors.text, margin: 0, marginBottom: '6px' }}>
+            <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 800, color: colors.text, margin: 0, marginBottom: '6px' }}>
               Community feed
             </h2>
             <p style={{ color: colors.textSecondary, fontSize: '14px', margin: 0 }}>
@@ -199,7 +219,7 @@ function Community() {
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', width: isMobile ? '100%' : 'auto' }}>
             {filters.map((item) => (
               <button
                 key={item.id}
@@ -213,7 +233,8 @@ function Community() {
                   color: filter === item.id ? '#fff' : colors.text,
                   fontSize: '13px',
                   fontWeight: 700,
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  flex: isMobile ? '1 1 100%' : '0 1 auto'
                 }}
               >
                 {item.label}

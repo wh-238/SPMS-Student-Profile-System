@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useTheme } from '../../hooks/useTheme'
+import { useIsMobile } from '../../hooks/useIsMobile'
 
 function PostComposer({
   title: initialTitle = '',
@@ -12,6 +13,7 @@ function PostComposer({
   onCancel
 }) {
   const { colors } = useTheme()
+  const isMobile = useIsMobile()
   const [title, setTitle] = useState(initialTitle)
   const [content, setContent] = useState(initialContent)
   const [visibility, setVisibility] = useState(initialVisibility)
@@ -48,7 +50,7 @@ function PostComposer({
         background: colors.bgSecondary,
         border: `1px solid ${colors.border}`,
         borderRadius: '16px',
-        padding: compact ? '18px' : '24px',
+        padding: isMobile ? '18px' : compact ? '18px' : '24px',
         boxShadow: `0 10px 28px ${colors.shadow}`
       }}
     >
@@ -66,7 +68,7 @@ function PostComposer({
             border: `1px solid ${colors.border}`,
             background: colors.bg,
             color: colors.text,
-            fontSize: '15px',
+            fontSize: isMobile ? '14px' : '15px',
             outline: 'none'
           }}
         />
@@ -84,11 +86,11 @@ function PostComposer({
             border: `1px solid ${colors.border}`,
             background: colors.bg,
             color: colors.text,
-            fontSize: '15px',
+            fontSize: isMobile ? '14px' : '15px',
             lineHeight: 1.6,
             resize: 'vertical',
             outline: 'none',
-            minHeight: compact ? '120px' : '160px'
+            minHeight: isMobile ? '140px' : compact ? '120px' : '160px'
           }}
         />
 
@@ -96,19 +98,22 @@ function PostComposer({
           style={{
             display: 'flex',
             justifyContent: 'space-between',
-            alignItems: compact ? 'stretch' : 'center',
+            alignItems: isMobile || compact ? 'stretch' : 'center',
             gap: '12px',
-            flexWrap: 'wrap'
+            flexWrap: 'wrap',
+            flexDirection: isMobile ? 'column' : 'row'
           }}
         >
           <label
             style={{
               display: 'flex',
-              alignItems: 'center',
+              alignItems: isMobile ? 'stretch' : 'center',
+              flexDirection: isMobile ? 'column' : 'row',
               gap: '10px',
               color: colors.textSecondary,
               fontSize: '14px',
-              fontWeight: 500
+              fontWeight: 500,
+              width: isMobile ? '100%' : 'auto'
             }}
           >
             Visibility
@@ -121,7 +126,8 @@ function PostComposer({
                 border: `1px solid ${colors.border}`,
                 background: colors.bg,
                 color: colors.text,
-                fontSize: '14px'
+                fontSize: '14px',
+                width: isMobile ? '100%' : 'auto'
               }}
             >
               <option value="public">Public</option>
@@ -129,7 +135,15 @@ function PostComposer({
             </select>
           </label>
 
-          <div style={{ display: 'flex', gap: '10px', marginLeft: 'auto' }}>
+          <div
+            style={{
+              display: 'flex',
+              gap: '10px',
+              marginLeft: isMobile ? 0 : 'auto',
+              width: isMobile ? '100%' : 'auto',
+              flexDirection: isMobile ? 'column-reverse' : 'row'
+            }}
+          >
             {onCancel && (
               <button
                 type="button"
@@ -142,7 +156,8 @@ function PostComposer({
                   color: colors.text,
                   fontSize: '14px',
                   fontWeight: 600,
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  width: isMobile ? '100%' : 'auto'
                 }}
               >
                 Cancel
@@ -161,7 +176,8 @@ function PostComposer({
                 fontSize: '14px',
                 fontWeight: 700,
                 cursor: busy ? 'not-allowed' : 'pointer',
-                opacity: busy ? 0.75 : 1
+                opacity: busy ? 0.75 : 1,
+                width: isMobile ? '100%' : 'auto'
               }}
             >
               {busy ? 'Saving...' : submitLabel}

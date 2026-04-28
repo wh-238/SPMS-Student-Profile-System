@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useTheme } from '../../hooks/useTheme'
+import { useIsMobile } from '../../hooks/useIsMobile'
 import PostComposer from './PostComposer'
 
 const formatPostTime = (value) => {
@@ -29,6 +30,7 @@ function PostCard({
   onModerate
 }) {
   const { colors } = useTheme()
+  const isMobile = useIsMobile()
   const [isEditing, setIsEditing] = useState(false)
   const [comment, setComment] = useState('')
   const [reportReason, setReportReason] = useState('')
@@ -71,7 +73,7 @@ function PostCard({
         background: colors.bgSecondary,
         border: `1px solid ${colors.border}`,
         borderRadius: '18px',
-        padding: '24px',
+        padding: isMobile ? '18px' : '24px',
         boxShadow: `0 14px 32px ${colors.shadow}`
       }}
     >
@@ -153,7 +155,7 @@ function PostCard({
                 )}
               </div>
 
-              <h2 style={{ fontSize: '24px', fontWeight: 700, color: colors.text, margin: 0, marginBottom: '8px' }}>
+              <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 700, color: colors.text, margin: 0, marginBottom: '8px' }}>
                 {post.title}
               </h2>
 
@@ -209,7 +211,7 @@ function PostCard({
             )}
           </div>
 
-          <p style={{ color: colors.text, fontSize: '15px', lineHeight: 1.8, marginBottom: '20px', whiteSpace: 'pre-wrap' }}>
+          <p style={{ color: colors.text, fontSize: isMobile ? '14px' : '15px', lineHeight: 1.8, marginBottom: '20px', whiteSpace: 'pre-wrap' }}>
             {post.content}
           </p>
 
@@ -224,7 +226,7 @@ function PostCard({
               borderTop: `1px solid ${colors.border}`
             }}
           >
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', width: isMobile ? '100%' : 'auto' }}>
               <button
                 type="button"
                 onClick={() => setShowComments((value) => !value)}
@@ -236,7 +238,8 @@ function PostCard({
                   color: colors.text,
                   fontSize: '13px',
                   fontWeight: 700,
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  flex: isMobile ? '1 1 100%' : '0 1 auto'
                 }}
               >
                 Comments ({post.comment_count})
@@ -255,7 +258,8 @@ function PostCard({
                     color: post.is_liked ? '#fff' : colors.text,
                     fontSize: '13px',
                     fontWeight: 700,
-                    cursor: actionBusy ? 'not-allowed' : 'pointer'
+                    cursor: actionBusy ? 'not-allowed' : 'pointer',
+                    flex: isMobile ? '1 1 100%' : '0 1 auto'
                   }}
                 >
                   {post.is_liked ? 'Liked' : 'Like'} ({post.like_count})
@@ -274,7 +278,8 @@ function PostCard({
                     color: colors.text,
                     fontSize: '13px',
                     fontWeight: 700,
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    flex: isMobile ? '1 1 100%' : '0 1 auto'
                   }}
                 >
                   Report
@@ -336,7 +341,7 @@ function PostCard({
               </div>
 
               {onComment && (
-                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', flexDirection: isMobile ? 'column' : 'row' }}>
                   <textarea
                     rows={3}
                     value={comment}
@@ -344,6 +349,8 @@ function PostCard({
                     placeholder="Add a comment..."
                     style={{
                       flex: '1 1 300px',
+                      width: '100%',
+                      boxSizing: 'border-box',
                       padding: '12px',
                       borderRadius: '12px',
                       border: `1px solid ${colors.border}`,
@@ -359,7 +366,6 @@ function PostCard({
                     onClick={handleComment}
                     disabled={actionBusy}
                     style={{
-                      alignSelf: 'flex-start',
                       padding: '10px 16px',
                       borderRadius: '10px',
                       border: 'none',
@@ -367,7 +373,9 @@ function PostCard({
                       color: '#fff',
                       fontSize: '13px',
                       fontWeight: 700,
-                      cursor: actionBusy ? 'not-allowed' : 'pointer'
+                      cursor: actionBusy ? 'not-allowed' : 'pointer',
+                      width: isMobile ? '100%' : 'auto',
+                      alignSelf: isMobile ? 'stretch' : 'flex-start'
                     }}
                   >
                     Reply
