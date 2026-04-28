@@ -1,6 +1,7 @@
 ﻿import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTheme } from '../hooks/useTheme'
+import { useIsMobile } from '../hooks/useIsMobile'
 import API from '../api/api'
 
 function SearchUsers() {
@@ -12,6 +13,7 @@ function SearchUsers() {
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
   const { colors } = useTheme()
+  const isMobile = useIsMobile()
 
   const formatBirthday = (birthday) => {
     if (!birthday) return ''
@@ -59,7 +61,7 @@ function SearchUsers() {
   }
 
   return (
-    <div style={{ background: colors.bg, minHeight: 'calc(100vh - 64px)', padding: '32px 20px' }}>
+    <div style={{ background: colors.bg, minHeight: 'calc(100vh - 64px)', padding: isMobile ? '20px 14px 32px' : '32px 20px' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         <button
           type="button"
@@ -73,15 +75,16 @@ function SearchUsers() {
             borderRadius: '8px',
             fontSize: '14px',
             fontWeight: 600,
-            cursor: 'pointer'
+            cursor: 'pointer',
+            width: isMobile ? '100%' : 'auto'
           }}
           onMouseEnter={(e) => (e.target.style.background = colors.bgTertiary)}
           onMouseLeave={(e) => (e.target.style.background = colors.bgSecondary)}
         >
-          ← Back to Dashboard
+          {'<- Back to Dashboard'}
         </button>
 
-        <h1 style={{ fontSize: '32px', fontWeight: 700, color: colors.text, marginBottom: '32px' }}>
+        <h1 style={{ fontSize: isMobile ? '28px' : '32px', fontWeight: 700, color: colors.text, marginBottom: '24px' }}>
           Search Users
         </h1>
 
@@ -90,12 +93,12 @@ function SearchUsers() {
             background: colors.bgSecondary,
             border: `1px solid ${colors.border}`,
             borderRadius: '12px',
-            padding: '24px',
+            padding: isMobile ? '18px' : '24px',
             marginBottom: '32px',
             boxShadow: `0 4px 12px ${colors.shadow}`
           }}
         >
-          <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '12px' }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '12px', flexDirection: isMobile ? 'column' : 'row' }}>
             <input
               type="text"
               placeholder="Enter a name to search"
@@ -109,7 +112,9 @@ function SearchUsers() {
                 background: colors.bg,
                 color: colors.text,
                 fontSize: '14px',
-                outline: 'none'
+                outline: 'none',
+                width: '100%',
+                boxSizing: 'border-box'
               }}
               onFocus={(e) => (e.target.style.borderColor = colors.primary)}
               onBlur={(e) => (e.target.style.borderColor = colors.border)}
@@ -126,7 +131,8 @@ function SearchUsers() {
                 fontSize: '14px',
                 fontWeight: 600,
                 cursor: loading ? 'not-allowed' : 'pointer',
-                opacity: loading ? 0.7 : 1
+                opacity: loading ? 0.7 : 1,
+                width: isMobile ? '100%' : 'auto'
               }}
               onMouseEnter={(e) => !loading && (e.target.style.background = colors.primaryHover)}
               onMouseLeave={(e) => !loading && (e.target.style.background = colors.primary)}
@@ -157,7 +163,7 @@ function SearchUsers() {
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(280px, 1fr))',
                 gap: '20px',
                 marginBottom: '32px'
               }}
@@ -169,7 +175,7 @@ function SearchUsers() {
                     background: colors.bgSecondary,
                     border: `1px solid ${colors.border}`,
                     borderRadius: '12px',
-                    padding: '20px',
+                    padding: isMobile ? '16px' : '20px',
                     boxShadow: `0 2px 8px ${colors.shadow}`,
                     transition: 'transform 0.2s, box-shadow 0.2s'
                   }}
@@ -227,7 +233,10 @@ function SearchUsers() {
                       textDecoration: 'none',
                       fontSize: '13px',
                       fontWeight: 600,
-                      transition: 'background 0.2s'
+                      transition: 'background 0.2s',
+                      width: isMobile ? '100%' : 'auto',
+                      boxSizing: 'border-box',
+                      textAlign: 'center'
                     }}
                     onMouseEnter={(e) => (e.target.style.background = colors.primaryHover)}
                     onMouseLeave={(e) => (e.target.style.background = colors.primary)}
@@ -238,7 +247,7 @@ function SearchUsers() {
               ))}
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '12px', flexWrap: 'wrap', flexDirection: isMobile ? 'column' : 'row' }}>
               <button
                 onClick={handlePrev}
                 disabled={page <= 1}
@@ -251,7 +260,8 @@ function SearchUsers() {
                   cursor: page <= 1 ? 'not-allowed' : 'pointer',
                   opacity: page <= 1 ? 0.5 : 1,
                   fontSize: '14px',
-                  fontWeight: 600
+                  fontWeight: 600,
+                  width: isMobile ? '100%' : 'auto'
                 }}
                 onMouseEnter={(e) => page > 1 && (e.target.style.background = colors.primaryHover)}
                 onMouseLeave={(e) => page > 1 && (e.target.style.background = colors.primary)}
@@ -259,7 +269,7 @@ function SearchUsers() {
                 ← Previous
               </button>
 
-              <span style={{ color: colors.text, fontSize: '14px', fontWeight: 600 }}>
+              <span style={{ color: colors.text, fontSize: '14px', fontWeight: 600, textAlign: 'center' }}>
                 Page {page} of {totalPages || 1}
               </span>
 
@@ -275,7 +285,8 @@ function SearchUsers() {
                   cursor: page >= totalPages ? 'not-allowed' : 'pointer',
                   opacity: page >= totalPages ? 0.5 : 1,
                   fontSize: '14px',
-                  fontWeight: 600
+                  fontWeight: 600,
+                  width: isMobile ? '100%' : 'auto'
                 }}
                 onMouseEnter={(e) => page < totalPages && (e.target.style.background = colors.primaryHover)}
                 onMouseLeave={(e) => page < totalPages && (e.target.style.background = colors.primary)}

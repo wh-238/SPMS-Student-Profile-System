@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useTheme } from '../hooks/useTheme'
 import { useAuth } from '../context/AuthContext'
+import { useIsMobile } from '../hooks/useIsMobile'
 import API from '../api/api'
 import { listUserPosts } from '../api/communityApi'
 import PostCard from '../components/community/PostCard'
@@ -11,6 +12,7 @@ function PublicProfile() {
   const navigate = useNavigate()
   const { colors } = useTheme()
   const { profile: viewer } = useAuth()
+  const isMobile = useIsMobile()
   const [profile, setProfile] = useState(null)
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
@@ -93,13 +95,13 @@ function PublicProfile() {
   }
 
   return (
-    <div style={{ background: colors.bg, minHeight: 'calc(100vh - 64px)', padding: '32px 20px 56px' }}>
+    <div style={{ background: colors.bg, minHeight: 'calc(100vh - 64px)', padding: isMobile ? '20px 14px 40px' : '32px 20px 56px' }}>
       <div style={{ maxWidth: '920px', margin: '0 auto', display: 'grid', gap: '24px' }}>
         <button
           type="button"
           onClick={() => navigate('/search')}
           style={{
-            width: 'fit-content',
+            width: isMobile ? '100%' : 'fit-content',
             padding: '10px 16px',
             background: colors.bgSecondary,
             color: colors.text,
@@ -118,13 +120,13 @@ function PublicProfile() {
             background: colors.bgSecondary,
             border: `1px solid ${colors.border}`,
             borderRadius: '16px',
-            padding: '28px',
+            padding: isMobile ? '20px' : '28px',
             boxShadow: `0 8px 18px ${colors.shadow}`
           }}
         >
-          <h1 style={{ fontSize: '30px', fontWeight: 700, color: colors.text, marginBottom: '24px' }}>Public Profile</h1>
+          <h1 style={{ fontSize: isMobile ? '26px' : '30px', fontWeight: 700, color: colors.text, marginBottom: '24px' }}>Public Profile</h1>
 
-          <h2 style={{ fontSize: '24px', fontWeight: 700, color: colors.text, marginTop: 0, marginBottom: '16px' }}>
+          <h2 style={{ fontSize: isMobile ? '22px' : '24px', fontWeight: 700, color: colors.text, marginTop: 0, marginBottom: '16px' }}>
             {profile.name}
           </h2>
 
@@ -161,7 +163,7 @@ function PublicProfile() {
 
         <section style={{ display: 'grid', gap: '16px' }}>
           <div>
-            <h2 style={{ fontSize: '24px', fontWeight: 700, color: colors.text, margin: 0, marginBottom: '6px' }}>
+            <h2 style={{ fontSize: isMobile ? '20px' : '24px', fontWeight: 700, color: colors.text, margin: 0, marginBottom: '6px' }}>
               {profile.name}&apos;s posts
             </h2>
             <p style={{ color: colors.textSecondary, fontSize: '14px', margin: 0 }}>

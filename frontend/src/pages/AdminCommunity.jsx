@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { useTheme } from '../hooks/useTheme'
 import { useAuth } from '../context/AuthContext'
+import { useIsMobile } from '../hooks/useIsMobile'
 import { listReportedPosts, moderatePost } from '../api/communityApi'
 import PostCard from '../components/community/PostCard'
 
@@ -9,6 +10,7 @@ function AdminCommunity() {
   const navigate = useNavigate()
   const { colors } = useTheme()
   const { profile } = useAuth()
+  const isMobile = useIsMobile()
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -50,13 +52,13 @@ function AdminCommunity() {
   }
 
   return (
-    <div style={{ background: colors.bg, minHeight: 'calc(100vh - 64px)', padding: '32px 20px 56px' }}>
+    <div style={{ background: colors.bg, minHeight: 'calc(100vh - 64px)', padding: isMobile ? '20px 14px 40px' : '32px 20px 56px' }}>
       <div style={{ maxWidth: '1100px', margin: '0 auto', display: 'grid', gap: '24px' }}>
         <button
           type="button"
           onClick={() => navigate('/community')}
           style={{
-            width: 'fit-content',
+            width: isMobile ? '100%' : 'fit-content',
             padding: '10px 16px',
             background: colors.bgSecondary,
             color: colors.text,
@@ -75,14 +77,14 @@ function AdminCommunity() {
             background: colors.bgSecondary,
             border: `1px solid ${colors.border}`,
             borderRadius: '20px',
-            padding: '28px',
+            padding: isMobile ? '20px' : '28px',
             boxShadow: `0 12px 28px ${colors.shadow}`
           }}
         >
-          <h1 style={{ fontSize: '34px', fontWeight: 800, color: colors.text, margin: 0, marginBottom: '10px' }}>
+          <h1 style={{ fontSize: isMobile ? '28px' : '34px', fontWeight: 800, color: colors.text, margin: 0, marginBottom: '10px' }}>
             Community moderation
           </h1>
-          <p style={{ color: colors.textSecondary, fontSize: '15px', lineHeight: 1.8, margin: 0 }}>
+          <p style={{ color: colors.textSecondary, fontSize: isMobile ? '14px' : '15px', lineHeight: 1.8, margin: 0 }}>
             Review reported content here. Dismissing clears the reports; removing the post hides it from the feed and
             should later be logged by the backend for audit purposes.
           </p>

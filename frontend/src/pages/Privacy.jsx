@@ -1,6 +1,7 @@
 ﻿import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTheme } from '../hooks/useTheme'
+import { useIsMobile } from '../hooks/useIsMobile'
 import API from '../api/api'
 
 function Privacy() {
@@ -16,6 +17,7 @@ function Privacy() {
   const [success, setSuccess] = useState('')
   const navigate = useNavigate()
   const { colors } = useTheme()
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     const fetchPrivacy = async () => {
@@ -58,12 +60,12 @@ function Privacy() {
   ]
 
   return (
-    <div style={{ background: colors.bg, minHeight: 'calc(100vh - 64px)', padding: '32px 20px' }}>
+    <div style={{ background: colors.bg, minHeight: 'calc(100vh - 64px)', padding: isMobile ? '20px 14px 32px' : '32px 20px' }}>
       <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-        <h1 style={{ fontSize: '28px', fontWeight: 700, color: colors.text, marginBottom: '8px' }}>
+        <h1 style={{ fontSize: isMobile ? '24px' : '28px', fontWeight: 700, color: colors.text, marginBottom: '8px' }}>
           Privacy Settings
         </h1>
-        <p style={{ color: colors.textSecondary, fontSize: '15px', marginBottom: '32px' }}>
+        <p style={{ color: colors.textSecondary, fontSize: isMobile ? '14px' : '15px', marginBottom: '24px', lineHeight: 1.7 }}>
           Choose which information is visible to other users
         </p>
 
@@ -105,7 +107,7 @@ function Privacy() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '12px',
-                padding: '12px 14px',
+                padding: isMobile ? '14px' : '12px 14px',
                 background: colors.bgSecondary,
                 border: `1px solid ${colors.border}`,
                 borderRadius: '8px',
@@ -144,7 +146,7 @@ function Privacy() {
             </div>
           ))}
 
-          <div style={{ display: 'flex', gap: '12px', marginTop: '20px' }}>
+          <div style={{ display: 'flex', gap: '12px', marginTop: '20px', flexDirection: isMobile ? 'column' : 'row' }}>
             <button
               type="submit"
               disabled={loading}

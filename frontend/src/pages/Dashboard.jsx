@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTheme } from '../hooks/useTheme'
+import { useIsMobile } from '../hooks/useIsMobile'
 import API from '../api/api'
 
 function Dashboard() {
@@ -8,6 +9,7 @@ function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const { colors } = useTheme()
+  const isMobile = useIsMobile()
 
   const formatBirthday = (birthday) => {
     if (!birthday) return 'Not set'
@@ -87,13 +89,13 @@ function Dashboard() {
   ]
 
   return (
-    <div style={{ background: colors.bg, minHeight: 'calc(100vh - 64px)', padding: '32px 20px' }}>
+    <div style={{ background: colors.bg, minHeight: 'calc(100vh - 64px)', padding: isMobile ? '20px 14px 32px' : '32px 20px' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        <div style={{ marginBottom: '40px' }}>
-          <h1 style={{ fontSize: '32px', fontWeight: 700, color: colors.text, margin: 0, marginBottom: '8px' }}>
+        <div style={{ marginBottom: isMobile ? '28px' : '40px' }}>
+          <h1 style={{ fontSize: isMobile ? '28px' : '32px', fontWeight: 700, color: colors.text, margin: 0, marginBottom: '8px' }}>
             Welcome to SPMS Dashboard
           </h1>
-          <p style={{ color: colors.textSecondary, fontSize: '15px', margin: 0 }}>
+          <p style={{ color: colors.textSecondary, fontSize: isMobile ? '14px' : '15px', margin: 0, lineHeight: 1.7 }}>
             Manage your profile, explore other users, and publish community posts.
           </p>
         </div>
@@ -113,7 +115,10 @@ function Dashboard() {
                 fontSize: '14px',
                 fontWeight: 600,
                 transition: 'background 0.2s',
-                border: item.border || 'none'
+                border: item.border || 'none',
+                width: isMobile ? '100%' : 'auto',
+                boxSizing: 'border-box',
+                textAlign: 'center'
               }}
               onMouseEnter={(event) => (event.target.style.background = item.hover)}
               onMouseLeave={(event) => (event.target.style.background = item.background)}
@@ -138,7 +143,10 @@ function Dashboard() {
                   textDecoration: 'none',
                   fontSize: '14px',
                   fontWeight: 600,
-                  transition: 'background 0.2s'
+                  transition: 'background 0.2s',
+                  width: isMobile ? '100%' : 'auto',
+                  boxSizing: 'border-box',
+                  textAlign: 'center'
                 }}
                 onMouseEnter={(event) => (event.target.style.background = item.hover)}
                 onMouseLeave={(event) => (event.target.style.background = item.background)}
@@ -154,15 +162,15 @@ function Dashboard() {
             background: colors.bgSecondary,
             border: `1px solid ${colors.border}`,
             borderRadius: '12px',
-            padding: '32px',
+            padding: isMobile ? '20px' : '32px',
             boxShadow: `0 4px 12px ${colors.shadow}`
           }}
         >
-          <h2 style={{ fontSize: '20px', fontWeight: 700, color: colors.text, marginTop: 0, marginBottom: '24px' }}>
+          <h2 style={{ fontSize: isMobile ? '18px' : '20px', fontWeight: 700, color: colors.text, marginTop: 0, marginBottom: '24px' }}>
             My Profile
           </h2>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(200px, 1fr))', gap: isMobile ? '16px' : '20px' }}>
             {[
               { label: 'Name', value: profile.name },
               { label: 'Email', value: profile.email },

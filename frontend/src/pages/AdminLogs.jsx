@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTheme } from '../hooks/useTheme'
+import { useIsMobile } from '../hooks/useIsMobile'
 import API from '../api/api'
 
 function AdminLogs() {
@@ -9,6 +10,7 @@ function AdminLogs() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const { colors } = useTheme()
+  const isMobile = useIsMobile()
 
   // 格式化时间为本地时间
   const formatTime = (isoTime) => {
@@ -66,7 +68,7 @@ function AdminLogs() {
     )
 
   return (
-    <div style={{ background: colors.bg, minHeight: 'calc(100vh - 64px)', padding: '32px 20px' }}>
+    <div style={{ background: colors.bg, minHeight: 'calc(100vh - 64px)', padding: isMobile ? '20px 14px 32px' : '32px 20px' }}>
       <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
         <button
           type="button"
@@ -80,7 +82,8 @@ function AdminLogs() {
             borderRadius: '8px',
             fontSize: '14px',
             fontWeight: 600,
-            cursor: 'pointer'
+            cursor: 'pointer',
+            width: isMobile ? '100%' : 'auto'
           }}
           onMouseEnter={(e) => (e.target.style.background = colors.bgTertiary)}
           onMouseLeave={(e) => (e.target.style.background = colors.bgSecondary)}
@@ -88,7 +91,7 @@ function AdminLogs() {
           ← Back to Dashboard
         </button>
 
-        <h1 style={{ fontSize: '32px', fontWeight: 700, color: colors.text, marginBottom: '32px' }}>
+        <h1 style={{ fontSize: isMobile ? '28px' : '32px', fontWeight: 700, color: colors.text, marginBottom: '24px' }}>
           Admin Logs
         </h1>
 
@@ -110,6 +113,7 @@ function AdminLogs() {
               <table
                 style={{
                   width: '100%',
+                  minWidth: isMobile ? '920px' : '100%',
                   borderCollapse: 'collapse',
                   fontSize: '14px'
                 }}

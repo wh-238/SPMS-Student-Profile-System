@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useTheme } from '../hooks/useTheme'
+import { useIsMobile } from '../hooks/useIsMobile'
 import API from '../api/api'
 
 function Register() {
@@ -15,6 +16,7 @@ function Register() {
   const [success, setSuccess] = useState('')
   const navigate = useNavigate()
   const { colors } = useTheme()
+  const isMobile = useIsMobile()
 
   const isNameValid = (value) => value.trim().length > 0
   const isEmailValid = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
@@ -73,7 +75,7 @@ function Register() {
         alignItems: 'center',
         justifyContent: 'center',
         background: colors.bg,
-        padding: '20px'
+        padding: isMobile ? '14px' : '20px'
       }}
     >
       <div
@@ -83,15 +85,15 @@ function Register() {
           background: colors.bgSecondary,
           borderRadius: '12px',
           border: `1px solid ${colors.border}`,
-          padding: '40px',
+          padding: isMobile ? '24px 18px' : '40px',
           boxShadow: `0 10px 32px ${colors.shadow}`
         }}
       >
-        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+        <div style={{ textAlign: 'center', marginBottom: isMobile ? '24px' : '32px' }}>
           <div style={{ fontSize: '40px', marginBottom: '16px' }}>👤</div>
           <h1
             style={{
-              fontSize: '28px',
+              fontSize: isMobile ? '24px' : '28px',
               fontWeight: 700,
               color: colors.text,
               margin: 0,
